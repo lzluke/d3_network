@@ -102,8 +102,8 @@
       bottom: 30,
       left: 40
     },
-      width = 800 - margin.left - margin.right,
-      height = 800 - margin.top - margin.bottom;
+      width = 600 - margin.left - margin.right,
+      height = 600 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
     var svg = d3.select("#my_dataviz")
@@ -131,7 +131,7 @@
       .data(data.nodes)
       .enter()
       .append("circle")
-      .attr("r", 20)
+      .attr("r", 15)
       .style("fill", nodeColor)
 
     var label = svg
