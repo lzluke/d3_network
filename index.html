@@ -14,28 +14,63 @@
 
 <script>
 
+  function getDataOrder(myData) {
+
+    var orderDict = {
+        "et_i": 0,
+        "n_i": 0,
+        "id_i": 0,
+        "s_i": 0,
+        "t_i": 0
+    };
+
+    for (let i = 0; i < myData.length; i++) {
+        var item = myData[i];
+        switch (item.label) {
+            case "entity_type":
+                orderDict.et_i = i
+                break;
+            case "name":
+                orderDict.n_i = i
+                break;
+            case "id":
+                orderDict.id_i = i
+                break;
+            case "source":
+                orderDict.s_i = i
+                break;
+            case "target":
+                orderDict.t_i = i
+                break;
+        }
+    }
+    return orderDict
+
+}
+
   function transformData(myData) {
     var json_dict = {
       "nodes": [],
       "links": []
     };
+    itemOrder = getDataOrder(myData.columns)
 
-    for (let i = 0; i < data_data.length; i++) {
-      console.log(data_data[i]);
-      var s_data = data_data[i];
+    for (let i = 0; i < myData.data.length; i++) {
+      console.log(myData.data[i]);
+      var s_data = myData.data[i];
       if (s_data[0] != "." && s_data[1] != "." && s_data[2] != ".") {
         var temp_node_obj = {
-          "id": s_data[2],
-          "name": s_data[1],
-          "entity_type": s_data[0]
+          "id": s_data[itemOrder.id_i],
+          "name": s_data[itemOrder.n_i],
+          "entity_type": s_data[itemOrder.et_i]
         };
         json_dict.nodes.push(temp_node_obj)
       }
 
       if (s_data[3] != "." && s_data[4] != ".") {
         var temp_link_obj = {
-          "source": s_data[3],
-          "target": s_data[4],
+          "source": s_data[itemOrder.s_i],
+          "target": s_data[itemOrder.t_i],
         };
         json_dict.links.push(temp_link_obj)
       }
@@ -67,8 +102,8 @@
       bottom: 30,
       left: 40
     },
-      width = 1000 - margin.left - margin.right,
-      height = 1000 - margin.top - margin.bottom;
+      width = 800 - margin.left - margin.right,
+      height = 800 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
     var svg = d3.select("#my_dataviz")
@@ -96,7 +131,7 @@
       .data(data.nodes)
       .enter()
       .append("circle")
-      .attr("r", 20)
+      .attr("r", 10)
       .style("fill", nodeColor)
 
     var label = svg
@@ -161,7 +196,7 @@
 
   function onDataReceived(messageFromVA) {
     console.log(messageFromVA)
-    myChart(transformData(messageFromVA.data))
+    myChart(transformData(messageFromVA))
   }
 
   va.messagingUtil.setOnDataReceivedCallback(onDataReceived);
