@@ -1,0 +1,259 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<script type="text/javascript" src="util/messagingUtil.js"></script>
+<script type="text/javascript" src="util/contentUtil.js"></script>
+<script type="text/javascript" src="thirdPartyHelpers/d3.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<!-- <p>Loading</p>
+<div id="textinput"></div> -->
+<div id="my_dataviz"></div>
+
+
+<script>
+
+  function nodeColor(d) {
+    if (d.entity_type == "mas_str") {
+      return "#c2a035";
+    } else if (d.entity_type == "mas_trc") {
+      return "#B1ACAB";
+    } else if (d.entity_type == "mas_party") {
+      return "#8E2E2B";
+    } else {
+      return "#013f7c";
+    }
+  };
+
+  function myChart(myData) {
+
+    // set the dimensions and margins of the graph
+    var margin = {
+      top: 10,
+      right: 30,
+      bottom: 30,
+      left: 40
+    },
+      width = 1000 - margin.left - margin.right,
+      height = 1000 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+    d3.json(myData, function (data) {
+      // console.log(data.nodes)
+      // console.log(data.links)
+      // Initialize the links
+
+      var link = svg
+        .selectAll("line")
+        .data(data.links)
+        .enter()
+        .append("line")
+        .style("stroke", "#aaa");
+
+      // Initialize the nodes
+      var node = svg
+        .selectAll("circle")
+        .data(data.nodes)
+        .enter()
+        .append("circle")
+        .attr("r", 20)
+        .style("fill", nodeColor)
+
+      var label = svg
+        .selectAll("text")
+        .data(data.nodes)
+        .enter()
+        .append("text")
+        .text(function (d, i) {
+          return d.name;
+        });
+
+      // Let's list the force we wanna apply on the network
+      var simulation = d3.forceSimulation(data.nodes) // Force algorithm is applied to data.nodes
+        .force("link", d3.forceLink() // This force provides links between nodes
+          .id(function (d) {
+            return d.id;
+          }) // This provide  the id of a node
+          .links(data.links) // and this the list of links
+        )
+        .force("charge", d3.forceManyBody().strength(-400)) // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+        .force("center", d3.forceCenter(width / 2, height / 2)) // This force attracts nodes to the center of the svg area
+        .on("end", ticked);
+
+      // This function is run at each iteration of the force algorithm, updating the nodes position.
+      function ticked() {
+        link
+          .attr("x1", function (d) {
+            return d.source.x;
+          })
+          .attr("y1", function (d) {
+            return d.source.y;
+          })
+          .attr("x2", function (d) {
+            return d.target.x;
+          })
+          .attr("y2", function (d) {
+            return d.target.y;
+          });
+
+        node
+          .attr("cx", function (d) {
+            return d.x + 6;
+          })
+          .attr("cy", function (d) {
+            return d.y - 6;
+          });
+
+
+        label
+          .attr("x", function (d) {
+            return d.x + 30;
+          })
+          .attr("y", function (d) {
+            return d.y;
+          })
+          .style("font-size", "10px").style("fill", "black");
+      }
+
+    });
+  };
+
+  var data_data = [
+    [
+      "mas_fi",
+      "114739",
+      114739,
+      114740,
+      114739
+    ],
+    [
+      "mas_party",
+      "23 HOUR LOCKSMITH",
+      123,
+      1234,
+      112309
+    ],
+    [
+      "mas_party",
+      "HANWAH IMPORT & EXPORT (S) PTE LTD",
+      1234,
+      12345,
+      11763
+    ],
+    [
+      "mas_party",
+      "U-FOOD EQUIPMENT & SERVICE",
+      12345,
+      123456,
+      102693
+    ],
+    [
+      "mas_party",
+      "Vernon Low Xin Jaime",
+      123456,
+      ".",
+      "."
+    ],
+    [
+      "mas_str",
+      "102691",
+      102691,
+      102691,
+      123456
+    ],
+    [
+      "mas_str",
+      "114738",
+      114738,
+      114738,
+      12345
+    ],
+    [
+      "mas_str",
+      "115186",
+      115186,
+      11763,
+      114739
+    ],
+    [
+      "mas_trc",
+      "102693",
+      102693,
+      102693,
+      114739
+    ],
+    [
+      "mas_trc",
+      "112309",
+      112309,
+      112309,
+      114739
+    ],
+    [
+      "mas_trc",
+      "114740",
+      114740,
+      115186,
+      123
+    ],
+    [
+      "mas_trc",
+      "115185",
+      115185,
+      115186,
+      1234
+    ],
+    [
+      "mas_trc",
+      "11763",
+      11763,
+      123,
+      115185
+    ]
+  ]
+
+  var json_dict = {
+    "nodes": [],
+    "links": []
+  };
+
+  for (let i = 0; i < data_data.length; i++) {
+    console.log(data_data[i]);
+    var s_data = data_data[i];
+    if (s_data[0] != "." && s_data[1] != "." && s_data[2] != ".") {
+      var temp_node_obj = {
+        "id": s_data[2],
+        "name": s_data[1],
+        "entity_type": s_data[0]
+      };
+      json_dict.nodes.push(temp_node_obj)
+    }
+
+    if (s_data[3] != "." && s_data[4] != ".") {
+      var temp_link_obj = {
+        "source": s_data[3],
+        "target": s_data[4],
+      };
+      json_dict.links.push(temp_link_obj)
+    }
+  };
+
+  console.log(json_dict);
+
+  myChart(json_dict);
+
+
+
+  //va.messagingUtil.setOnDataReceivedCallback(onDataReceived);
+</script>
