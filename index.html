@@ -9,7 +9,7 @@
 <script type="text/javascript" src="thirdPartyHelpers/d3.js"></script>
 
 <!-- Create a div where the graph will take place -->
-<p>Loading</p>
+<p>Loading Data</p>
 <div id="textinput"></div>
 <div id="my_dataviz"></div>
 
@@ -138,6 +138,7 @@
 
   function onDataReceived(messageFromVA) {
     console.log(messageFromVA)
+    console.log(messageFromVA.data)
     printData(messageFromVA)
   }
 
