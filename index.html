@@ -9,12 +9,41 @@
 <script type="text/javascript" src="thirdPartyHelpers/d3.js"></script>
 
 <!-- Create a div where the graph will take place -->
-<p>Loading Data Test 1</p>
-<div id="textinput"></div>
 <div id="my_dataviz"></div>
 
 
 <script>
+
+  function transformData(myData) {
+    var json_dict = {
+      "nodes": [],
+      "links": []
+    };
+
+    for (let i = 0; i < data_data.length; i++) {
+      console.log(data_data[i]);
+      var s_data = data_data[i];
+      if (s_data[0] != "." && s_data[1] != "." && s_data[2] != ".") {
+        var temp_node_obj = {
+          "id": s_data[2],
+          "name": s_data[1],
+          "entity_type": s_data[0]
+        };
+        json_dict.nodes.push(temp_node_obj)
+      }
+
+      if (s_data[3] != "." && s_data[4] != ".") {
+        var temp_link_obj = {
+          "source": s_data[3],
+          "target": s_data[4],
+        };
+        json_dict.links.push(temp_link_obj)
+      }
+    };
+
+    return json_dict
+  }
+
 
   function nodeColor(d) {
     if (d.entity_type == "mas_str") {
@@ -29,6 +58,7 @@
   };
 
   function myChart(myData) {
+    var data = myData;
 
     // set the dimensions and margins of the graph
     var margin = {
@@ -49,96 +79,89 @@
       .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
 
-    d3.json(myData, function (data) {
-      // console.log(data.nodes)
-      // console.log(data.links)
-      // Initialize the links
+    // console.log(data.nodes)
+    // console.log(data.links)
+    // Initialize the links
 
-      var link = svg
-        .selectAll("line")
-        .data(data.links)
-        .enter()
-        .append("line")
-        .style("stroke", "#aaa");
+    var link = svg
+      .selectAll("line")
+      .data(data.links)
+      .enter()
+      .append("line")
+      .style("stroke", "#aaa");
 
-      // Initialize the nodes
-      var node = svg
-        .selectAll("circle")
-        .data(data.nodes)
-        .enter()
-        .append("circle")
-        .attr("r", 20)
-        .style("fill", nodeColor)
+    // Initialize the nodes
+    var node = svg
+      .selectAll("circle")
+      .data(data.nodes)
+      .enter()
+      .append("circle")
+      .attr("r", 20)
+      .style("fill", nodeColor)
 
-      var label = svg
-        .selectAll("text")
-        .data(data.nodes)
-        .enter()
-        .append("text")
-        .text(function (d, i) {
-          return d.name;
+    var label = svg
+      .selectAll("text")
+      .data(data.nodes)
+      .enter()
+      .append("text")
+      .text(function (d, i) {
+        return d.name;
+      });
+
+    // Let's list the force we wanna apply on the network
+    var simulation = d3.forceSimulation(data.nodes) // Force algorithm is applied to data.nodes
+      .force("link", d3.forceLink() // This force provides links between nodes
+        .id(function (d) {
+          return d.id;
+        }) // This provide  the id of a node
+        .links(data.links) // and this the list of links
+      )
+      .force("charge", d3.forceManyBody().strength(-400)) // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+      .force("center", d3.forceCenter(width / 2, height / 2)) // This force attracts nodes to the center of the svg area
+      .on("end", ticked);
+
+    // This function is run at each iteration of the force algorithm, updating the nodes position.
+    function ticked() {
+      link
+        .attr("x1", function (d) {
+          return d.source.x;
+        })
+        .attr("y1", function (d) {
+          return d.source.y;
+        })
+        .attr("x2", function (d) {
+          return d.target.x;
+        })
+        .attr("y2", function (d) {
+          return d.target.y;
         });
 
-      // Let's list the force we wanna apply on the network
-      var simulation = d3.forceSimulation(data.nodes) // Force algorithm is applied to data.nodes
-        .force("link", d3.forceLink() // This force provides links between nodes
-          .id(function (d) {
-            return d.id;
-          }) // This provide  the id of a node
-          .links(data.links) // and this the list of links
-        )
-        .force("charge", d3.forceManyBody().strength(-400)) // This adds repulsion between nodes. Play with the -400 for the repulsion strength
-        .force("center", d3.forceCenter(width / 2, height / 2)) // This force attracts nodes to the center of the svg area
-        .on("end", ticked);
-
-      // This function is run at each iteration of the force algorithm, updating the nodes position.
-      function ticked() {
-        link
-          .attr("x1", function (d) {
-            return d.source.x;
-          })
-          .attr("y1", function (d) {
-            return d.source.y;
-          })
-          .attr("x2", function (d) {
-            return d.target.x;
-          })
-          .attr("y2", function (d) {
-            return d.target.y;
-          });
-
-        node
-          .attr("cx", function (d) {
-            return d.x + 6;
-          })
-          .attr("cy", function (d) {
-            return d.y - 6;
-          });
+      node
+        .attr("cx", function (d) {
+          return d.x + 6;
+        })
+        .attr("cy", function (d) {
+          return d.y - 6;
+        });
 
 
-        label
-          .attr("x", function (d) {
-            return d.x + 30;
-          })
-          .attr("y", function (d) {
-            return d.y;
-          })
-          .style("font-size", "10px").style("fill", "black");
-      }
+      label
+        .attr("x", function (d) {
+          return d.x + 30;
+        })
+        .attr("y", function (d) {
+          return d.y;
+        })
+        .style("font-size", "10px").style("fill", "black");
+    }
 
-    });
   };
 
-  function printData(data) {
-    let ele = document.getElementById('textinput');
-    ele.innerHTML += data;
-  }
   // myChart("https://raw.githubusercontent.com/lzluke/d3_network/lzluke-patch-2/nw_data.json")
 
   function onDataReceived(messageFromVA) {
     console.log(messageFromVA)
-    console.log(messageFromVA.data)
-    printData(messageFromVA.data)
+    myChart(transformData(messageFromVA.data))
   }
 
   va.messagingUtil.setOnDataReceivedCallback(onDataReceived);
